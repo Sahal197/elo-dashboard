@@ -7,7 +7,7 @@
     <!-- Tailwind CSS + Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (Compatible version untuk kemudahan) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -16,11 +16,8 @@
         .card-rank-1 { background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,193,7,0.1)); border-left: 4px solid #fbbf24; }
         .card-rank-2 { background: linear-gradient(135deg, rgba(192,192,192,0.2), rgba(156,163,175,0.1)); border-left: 4px solid #9ca3af; }
         .card-rank-3 { background: linear-gradient(135deg, rgba(205,127,50,0.2), rgba(180,83,9,0.1)); border-left: 4px solid #b45309; }
+        .card-rank-5 { background: linear-gradient(135deg, rgba(128,0,128,0.2), rgba(75,0,130,0.1)); border-left: 4px solid #a855f7; }
         .offline-badge { background: #991b1b; }
-        .card-rank-5 {
-            background: linear-gradient(135deg, rgba(128,0,128,0.2), rgba(75,0,130,0.1));
-            border-left: 4px solid #a855f7;
-        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-gray-900 min-h-screen p-4 md:p-6 font-sans text-gray-100">
@@ -50,6 +47,7 @@
                     <li class="border-t border-slate-700 my-1"></li>
                     <li>📌 Mati pertama -30 | Mati kedua -20 | Mati terakhir -10</li>
                     <li>🍗 Makan +20 per kill | 👑 King of the hill +30</li>
+                    <li class="mt-2"><i class="fas fa-face-grin-tongue-squint text-purple-400"></i> Peringkat terakhir mendapat badge <strong>Badut</strong></li>
                 </ul>
                 <button id="reset-all-btn" class="mt-5 w-full bg-red-700 hover:bg-red-800 text-white font-bold py-2 rounded-xl transition flex items-center justify-center gap-2"><i class="fas fa-undo-alt"></i> Reset global (semua ke 1500)</button>
             </div>
@@ -69,7 +67,7 @@
             </div>
         </div>
 
-        <!-- Log Aktivitas (juga real-time) -->
+        <!-- Log Aktivitas -->
         <div class="mt-8 bg-slate-800/40 rounded-2xl border border-slate-700 p-4 shadow-inner">
             <div class="flex justify-between items-center flex-wrap gap-2 mb-2">
                 <h2 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-scroll text-indigo-400"></i> Log Perubahan (disinkronasi)</h2>
@@ -83,8 +81,7 @@
     </div>
 
     <script>
-        // ======================= KONFIGURASI FIREBASE (ISI DENGAN DATA PROJECT ANDA) =======================
-        // Ganti nilai di bawah ini dengan konfigurasi dari project Firebase Anda (dapatkan dari console.firebase.google.com)
+        // ======================= KONFIGURASI FIREBASE (DATA ASLI DARI PROJECT ANDA) =======================
         const firebaseConfig = {
             apiKey: "AIzaSyAKMmF2HZTA5Ne26lTxmDQGxSa6Wsip9x4",
             authDomain: "elo-arena-db.firebaseapp.com",
@@ -92,8 +89,8 @@
             projectId: "elo-arena-db",
             storageBucket: "elo-arena-db.firebasestorage.app",
             messagingSenderId: "1036449126832",
-            appId: "1:1036449126832:web:1f4ff50e49546fae0f5e75",
-            measurementId: "G-TYYRCHK158"
+            appId: "1:1036449126832:web:ff79b7fd62dc9de60f5e75",
+            measurementId: "G-PZB0N8K5BD"
         };
         // ====================================================================================================
 
@@ -105,23 +102,12 @@
         let scoresRef, logsRef;
         let isFirebaseReady = false;
 
-        // Data lokal sementara (akan diupdate dari Firebase)
+        // Data lokal (akan diupdate dari Firebase)
         let scores = {};
         let activityLog = [];
 
-        // Fungsi untuk memeriksa apakah konfigurasi sudah diisi
-        function isFirebaseConfigured() {
-            return firebaseConfig.apiKey !== "API_KEY_ANDA" && firebaseConfig.databaseURL.includes("firebaseio.com");
-        }
-
-        // Inisialisasi Firebase jika konfigurasi valid
+        // Inisialisasi Firebase
         function initFirebase() {
-            if (!isFirebaseConfigured()) {
-                document.getElementById('connection-status').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Konfigurasi Firebase belum diisi';
-                document.getElementById('connection-status').classList.add('bg-red-700');
-                document.getElementById('log-list').innerHTML = '<div class="text-red-400">⚠️ Firebase belum dikonfigurasi. Silakan ganti firebaseConfig dengan data dari project Firebase Anda.</div>';
-                return false;
-            }
             try {
                 firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
@@ -140,29 +126,28 @@
                         document.getElementById('connection-status').classList.add('bg-red-700');
                     }
                 });
-                
                 return true;
             } catch(e) {
                 console.error(e);
                 document.getElementById('connection-status').innerHTML = '<i class="fas fa-bug"></i> Error Firebase';
+                document.getElementById('connection-status').classList.add('bg-red-700');
                 return false;
             }
         }
 
-        // Menyimpan skor ke Firebase (akan trigger perubahan ke semua user)
+        // Menyimpan skor ke Firebase
         function updateFirebaseScore(player, newScore) {
             if (!database) return;
             scoresRef.child(player).set(newScore).catch(err => console.warn(err));
         }
 
-        // Menambah log ke Firebase (disimpan sebagai array dengan limit)
+        // Menambah log ke Firebase
         function addLogToFirebase(message) {
             if (!database) return;
             const newLog = {
                 message: message,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
-            // Simpan sebagai list, batasi 50 log terbaru
             logsRef.push(newLog).then(() => {
                 // Hapus log lama jika lebih dari 50
                 logsRef.limitToFirst(50).once('value', (snap) => {
@@ -231,14 +216,12 @@
                 newScores[ch.player] = (newScores[ch.player] || 1500) + ch.delta;
             }
             
-            // Validasi: tidak ada batasan negatif bebas (boleh minus)
             // Update ke Firebase sekaligus
             const updates = {};
             for (let p of PLAYERS) {
                 updates[p] = newScores[p];
             }
             scoresRef.update(updates).then(() => {
-                // Log ringkasan ronde
                 let summary = `🏆 RONDE BARU: ${changes.map(c => `${c.player} (${c.reason} ${c.delta>0?`+${c.delta}`:c.delta})`).join(', ')}`;
                 addLogToFirebase(summary);
             }).catch(err => alert("Gagal update: "+err));
@@ -254,7 +237,7 @@
             });
         }
 
-        // Render semua kartu berdasarkan data scores terbaru
+        // Render semua kartu berdasarkan data scores terbaru (dengan badge badut untuk peringkat terakhir)
         function renderPlayers() {
             const grid = document.getElementById('players-grid');
             if (!grid) return;
@@ -279,7 +262,7 @@
                 } else if (rank === 3) {
                     rankBadge = '<span class="bg-amber-700 text-amber-100 text-xs font-bold px-2 py-0.5 rounded-full"><i class="fas fa-medal"></i> #3</span>';
                     rankClass = 'card-rank-3';
-                } else if (rank === 5) {   // Tambahkan kondisi untuk ranking terendah
+                } else if (rank === PLAYERS.length) { // peringkat terakhir (badut)
                     rankBadge = '<span class="bg-purple-700 text-white text-xs font-bold px-2 py-0.5 rounded-full"><i class="fas fa-face-grin-tongue-squint"></i> Badut</span>';
                     rankClass = 'card-rank-5';
                 } else {
@@ -345,7 +328,7 @@
                 logContainer.innerHTML = '<div class="text-slate-500 italic">Belum ada log. Lakukan aksi untuk mencatat.</div>';
                 return;
             }
-            // Urutkan berdasarkan timestamp terbaru di atas
+            // Ubah object menjadi array dan urutkan berdasarkan timestamp terbaru
             const logsArray = Object.values(logsData).sort((a,b) => b.timestamp - a.timestamp);
             logContainer.innerHTML = logsArray.slice(0,40).map(log => `<div class="border-b border-slate-700/40 pb-1 text-slate-300"><i class="fas fa-caret-right text-emerald-400 mr-1"></i> ${log.message}</div>`).join('');
         }
@@ -367,7 +350,6 @@
                     scores = {...init};
                 }
                 renderPlayers();
-                // Update dropdown & kills input (tidak perlu reload total, hanya refresh nilai)
                 renderDropdowns();
             });
         }
@@ -414,14 +396,14 @@
             });
         }
         
-        // Inisialisasi
+        // Inisialisasi semua
         if (initFirebase()) {
             syncScores();
             syncLogs();
             renderDropdowns();
             renderKillsInputs();
         } else {
-            // Fallback untuk tampilan lokal tanpa Firebase (hanya demo konfigurasi)
+            // Fallback jika Firebase gagal (tampilkan data statis)
             PLAYERS.forEach(p => scores[p] = 1500);
             renderPlayers();
             renderDropdowns();
