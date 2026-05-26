@@ -17,6 +17,10 @@
         .card-rank-2 { background: linear-gradient(135deg, rgba(192,192,192,0.2), rgba(156,163,175,0.1)); border-left: 4px solid #9ca3af; }
         .card-rank-3 { background: linear-gradient(135deg, rgba(205,127,50,0.2), rgba(180,83,9,0.1)); border-left: 4px solid #b45309; }
         .offline-badge { background: #991b1b; }
+        .card-rank-5 {
+            background: linear-gradient(135deg, rgba(128,0,128,0.2), rgba(75,0,130,0.1));
+            border-left: 4px solid #a855f7;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-gray-900 min-h-screen p-4 md:p-6 font-sans text-gray-100">
@@ -82,13 +86,14 @@
         // ======================= KONFIGURASI FIREBASE (ISI DENGAN DATA PROJECT ANDA) =======================
         // Ganti nilai di bawah ini dengan konfigurasi dari project Firebase Anda (dapatkan dari console.firebase.google.com)
         const firebaseConfig = {
-            apiKey: "API_KEY_ANDA",
-            authDomain: "PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app", // Sesuaikan region
-            projectId: "PROJECT_ID",
-            storageBucket: "PROJECT_ID.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
+            apiKey: "AIzaSyAKMmF2HZTA5Ne26lTxmDQGxSa6Wsip9x4",
+            authDomain: "elo-arena-db.firebaseapp.com",
+            databaseURL: "https://elo-arena-db-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "elo-arena-db",
+            storageBucket: "elo-arena-db.firebasestorage.app",
+            messagingSenderId: "1036449126832",
+            appId: "1:1036449126832:web:1f4ff50e49546fae0f5e75",
+            measurementId: "G-TYYRCHK158"
         };
         // ====================================================================================================
 
@@ -274,6 +279,9 @@
                 } else if (rank === 3) {
                     rankBadge = '<span class="bg-amber-700 text-amber-100 text-xs font-bold px-2 py-0.5 rounded-full"><i class="fas fa-medal"></i> #3</span>';
                     rankClass = 'card-rank-3';
+                } else if (rank === 5) {   // Tambahkan kondisi untuk ranking terendah
+                    rankBadge = '<span class="bg-purple-700 text-white text-xs font-bold px-2 py-0.5 rounded-full"><i class="fas fa-face-grin-tongue-squint"></i> Badut</span>';
+                    rankClass = 'card-rank-5';
                 } else {
                     rankBadge = `<span class="bg-slate-700 text-slate-300 text-xs font-bold px-2 py-0.5 rounded-full">#${rank}</span>`;
                 }
