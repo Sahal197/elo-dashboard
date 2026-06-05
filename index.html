@@ -7,7 +7,7 @@
     <!-- Tailwind CSS + Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Firebase SDK (Compatible version untuk kemudahan) -->
+    <!-- Firebase SDK (Compatible version) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -27,7 +27,7 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
                 <h1 class="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-orange-500">🔥 ELO ARENA (Real-time)</h1>
-                <p class="text-slate-300 mt-1 text-sm">Mati(-30,-20,-10) | Makan +20 | King +30 | Semua pengguna melihat data yang sama</p>
+                <p class="text-slate-300 mt-1 text-sm">Mati(-30,-20,-10) | Makan +30 | King +40 | Juara +5 (bonus) | Semua pengguna melihat data yang sama</p>
             </div>
             <div id="connection-status" class="bg-green-700/80 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center gap-2"><i class="fas fa-plug"></i> Tersambung ke Firebase</div>
         </div>
@@ -46,8 +46,8 @@
                     <li><i class="fas fa-trophy text-amber-400"></i> Peringkat berdasarkan skor tertinggi</li>
                     <li class="border-t border-slate-700 my-1"></li>
                     <li>📌 Mati pertama -30 | Mati kedua -20 | Mati terakhir -10</li>
-                    <li>🍗 Makan +20 per kill | 👑 King of the hill +30</li>
-                    <li class="mt-2"><i class="fas fa-face-grin-tongue-squint text-purple-400"></i> Peringkat terakhir mendapat badge <strong>Badut</strong></li>
+                    <li>🍗 Makan +30 per kill | 👑 King of the hill +40</li>
+                    <li class="text-blue-300"><i class="fas fa-plus-circle"></i> Klik "+5 Play" di kartu pemain | Ronde otomatis +5 untuk peserta event (mati, king, juara)</li>
                 </ul>
                 <button id="reset-all-btn" class="mt-5 w-full bg-red-700 hover:bg-red-800 text-white font-bold py-2 rounded-xl transition flex items-center justify-center gap-2"><i class="fas fa-undo-alt"></i> Reset global (semua ke 1500)</button>
             </div>
@@ -60,8 +60,11 @@
                         <div><label class="block text-sm font-medium text-slate-300 mb-1"><i class="fas fa-skull text-orange-400"></i> Mati Kedua (-20)</label><select id="second-death-select" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white"></select></div>
                         <div><label class="block text-sm font-medium text-slate-300 mb-1"><i class="fas fa-skull text-yellow-500"></i> Mati Terakhir (-10)</label><select id="last-death-select" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white"></select></div>
                     </div>
-                    <div><label class="block text-sm font-medium text-slate-300 mb-1"><i class="fas fa-crown text-amber-400"></i> King of the Hill (+30)</label><select id="king-select" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white"></select></div>
-                    <div><label class="block text-sm font-medium text-slate-300 mb-1"><i class="fas fa-utensils text-green-400"></i> Jumlah Makan (kill) +20 each</label><div id="kills-input-container" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div><label class="block text-sm font-medium text-slate-300 mb-1"><i class="fas fa-crown text-amber-400"></i> King of the Hill (+40)</label><select id="king-select" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white"></select></div>
+                        <div><label class="block text-sm font-medium text-slate-300 mb-1"><i class="fas fa-trophy text-yellow-300"></i> 🏆 Sang Juara (+5 bonus)</label><select id="champion-select" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white"></select></div>
+                    </div>
+                    <div><label class="block text-sm font-medium text-slate-300 mb-1"><i class="fas fa-utensils text-green-400"></i> Jumlah Makan (kill) +30 each</label><div id="kills-input-container" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div></div>
                     <button id="apply-match-btn" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg"><i class="fas fa-check-double"></i> Terapkan Ronde & Update Semua</button>
                 </div>
             </div>
@@ -71,7 +74,7 @@
         <div class="mt-8 bg-slate-800/40 rounded-2xl border border-slate-700 p-4 shadow-inner">
             <div class="flex justify-between items-center flex-wrap gap-2 mb-2">
                 <h2 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-scroll text-indigo-400"></i> Log Perubahan (disinkronasi)</h2>
-                <!-- Bagian utk menambahakna button Hapus LOG -->
+                <button id="clear-log-btn" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-full"><i class="fas fa-trash-alt"></i> Bersihkan log global</button>
             </div>
             <div id="log-list" class="log-container space-y-1 text-xs font-mono bg-slate-900/50 rounded-lg p-2 h-36 overflow-y-auto">
                 <div class="text-slate-500 italic">Memuat data dari Firebase...</div>
@@ -81,8 +84,7 @@
     </div>
 
     <script>
-        // ======================= KONFIGURASI FIREBASE (DATA ASLI DARI PROJECT ANDA) =======================
-        //<button id="clear-log-btn" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-full"><i class="fas fa-trash-alt"></i> Bersihkan log global</button>
+        // ======================= KONFIGURASI FIREBASE =======================
         const firebaseConfig = {
             apiKey: "AIzaSyAKMmF2HZTA5Ne26lTxmDQGxSa6Wsip9x4",
             authDomain: "elo-arena-db.firebaseapp.com",
@@ -93,21 +95,13 @@
             appId: "1:1036449126832:web:ff79b7fd62dc9de60f5e75",
             measurementId: "G-PZB0N8K5BD"
         };
-        // ====================================================================================================
+        // ====================================================================
 
-        // Daftar pemain tetap
         const PLAYERS = ["Tungtung", "Jreng", "Firlie777", "Danker", "Dewakapas"];
-        
-        // Inisialisasi Firebase
         let database;
         let scoresRef, logsRef;
-        let isFirebaseReady = false;
-
-        // Data lokal (akan diupdate dari Firebase)
         let scores = {};
-        let activityLog = [];
 
-        // Inisialisasi Firebase
         function initFirebase() {
             try {
                 firebase.initializeApp(firebaseConfig);
@@ -115,16 +109,16 @@
                 scoresRef = database.ref('scores');
                 logsRef = database.ref('logs');
                 
-                // Status koneksi
                 database.ref('.info/connected').on('value', (snap) => {
+                    const statusDiv = document.getElementById('connection-status');
                     if (snap.val() === true) {
-                        document.getElementById('connection-status').innerHTML = '<i class="fas fa-plug"></i> Tersambung (real-time)';
-                        document.getElementById('connection-status').classList.remove('bg-red-700');
-                        document.getElementById('connection-status').classList.add('bg-green-700');
+                        statusDiv.innerHTML = '<i class="fas fa-plug"></i> Tersambung (real-time)';
+                        statusDiv.classList.remove('bg-red-700');
+                        statusDiv.classList.add('bg-green-700');
                     } else {
-                        document.getElementById('connection-status').innerHTML = '<i class="fas fa-wifi-slash"></i> Offline - hanya baca';
-                        document.getElementById('connection-status').classList.remove('bg-green-700');
-                        document.getElementById('connection-status').classList.add('bg-red-700');
+                        statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Offline - hanya baca';
+                        statusDiv.classList.remove('bg-green-700');
+                        statusDiv.classList.add('bg-red-700');
                     }
                 });
                 return true;
@@ -136,13 +130,11 @@
             }
         }
 
-        // Menyimpan skor ke Firebase
         function updateFirebaseScore(player, newScore) {
             if (!database) return;
             scoresRef.child(player).set(newScore).catch(err => console.warn(err));
         }
 
-        // Menambah log ke Firebase
         function addLogToFirebase(message) {
             if (!database) return;
             const newLog = {
@@ -150,9 +142,8 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
             logsRef.push(newLog).then(() => {
-                // Hapus log lama jika lebih dari 50
                 logsRef.limitToFirst(50).once('value', (snap) => {
-                    const count = snap.numChildren();
+                    let count = snap.numChildren();
                     if (count > 50) {
                         let excess = count - 50;
                         snap.forEach(child => {
@@ -163,7 +154,6 @@
             });
         }
 
-        // Reset semua skor ke 1500 (global)
         function resetAllScores() {
             if (!database) return;
             const updates = {};
@@ -173,13 +163,14 @@
             });
         }
 
-        // Terapkan ronde (bulk update)
+        // Process match: mati, king, makan, dan champion mendapat bonus +5 (tanpa +50)
         function processMatch() {
             if (!database) return;
             let firstDeath = document.getElementById('first-death-select').value;
             let secondDeath = document.getElementById('second-death-select').value;
             let lastDeath = document.getElementById('last-death-select').value;
             let king = document.getElementById('king-select').value;
+            let champion = document.getElementById('champion-select').value;
             
             const deathSet = new Set([firstDeath, secondDeath, lastDeath].filter(v => v));
             if (deathSet.size !== [firstDeath, secondDeath, lastDeath].filter(v=>v).length) {
@@ -187,23 +178,34 @@
                 return;
             }
             
-            // Ambil kills dari input
             let kills = {};
             PLAYERS.forEach(p => {
                 let input = document.getElementById(`kill-${p.replace(/\s/g, '')}`);
                 kills[p] = input ? (parseInt(input.value) || 0) : 0;
             });
             
-            // Baca skor saat ini dari Firebase (atau dari scores lokal yang sudah sync)
             const currentScores = { ...scores };
             let changes = [];
             
+            // Event yang mempengaruhi skor
             if (firstDeath) changes.push({player: firstDeath, delta: -30, reason: "Mati pertama"});
             if (secondDeath) changes.push({player: secondDeath, delta: -20, reason: "Mati kedua"});
             if (lastDeath) changes.push({player: lastDeath, delta: -10, reason: "Mati terakhir"});
-            if (king) changes.push({player: king, delta: 30, reason: "King of the hill"});
+            if (king) changes.push({player: king, delta: 40, reason: "King of the hill"});
             for (let p of PLAYERS) {
-                if (kills[p] > 0) changes.push({player: p, delta: kills[p] * 20, reason: `${kills[p]} Makan`});
+                if (kills[p] > 0) changes.push({player: p, delta: kills[p] * 30, reason: `${kills[p]} Makan`});
+            }
+            
+            // Bonus +5 untuk setiap pemain yang terlibat dalam event (mati, king, dan juara)
+            const involvedPlayers = new Set();
+            if (firstDeath) involvedPlayers.add(firstDeath);
+            if (secondDeath) involvedPlayers.add(secondDeath);
+            if (lastDeath) involvedPlayers.add(lastDeath);
+            if (king) involvedPlayers.add(king);
+            if (champion) involvedPlayers.add(champion); // Juara juga mendapat +5
+            
+            for (let p of involvedPlayers) {
+                changes.push({player: p, delta: 5, reason: "Bonus +5 Play (event)"});
             }
             
             if (changes.length === 0) {
@@ -211,13 +213,13 @@
                 return;
             }
             
-            // Hitung perubahan skor
+            // Hitung skor baru
             const newScores = { ...currentScores };
             for (let ch of changes) {
                 newScores[ch.player] = (newScores[ch.player] || 1500) + ch.delta;
             }
             
-            // Update ke Firebase sekaligus
+            // Update ke Firebase
             const updates = {};
             for (let p of PLAYERS) {
                 updates[p] = newScores[p];
@@ -232,17 +234,17 @@
             document.getElementById('second-death-select').value = "";
             document.getElementById('last-death-select').value = "";
             document.getElementById('king-select').value = "";
+            document.getElementById('champion-select').value = "";
             PLAYERS.forEach(p => {
                 let inp = document.getElementById(`kill-${p.replace(/\s/g, '')}`);
                 if (inp) inp.value = 0;
             });
         }
 
-        // Render semua kartu berdasarkan data scores terbaru (dengan badge badut untuk peringkat terakhir)
+        // RenderPlayers dengan tombol +5 Play di setiap kartu
         function renderPlayers() {
             const grid = document.getElementById('players-grid');
             if (!grid) return;
-            // Buat array ranking
             let ranking = PLAYERS.map(p => ({ player: p, score: scores[p] || 1500 }));
             ranking.sort((a,b) => b.score - a.score);
             let rankMap = {};
@@ -263,7 +265,7 @@
                 } else if (rank === 3) {
                     rankBadge = '<span class="bg-amber-700 text-amber-100 text-xs font-bold px-2 py-0.5 rounded-full"><i class="fas fa-medal"></i> #3</span>';
                     rankClass = 'card-rank-3';
-                } else if (rank === PLAYERS.length) { // peringkat terakhir (badut)
+                } else if (rank === PLAYERS.length) {
                     rankBadge = '<span class="bg-purple-700 text-white text-xs font-bold px-2 py-0.5 rounded-full"><i class="fas fa-face-grin-tongue-squint"></i> Badut</span>';
                     rankClass = 'card-rank-5';
                 } else {
@@ -280,6 +282,7 @@
                         <div class="flex flex-wrap justify-center gap-2 mt-1">
                             <button data-player="${player}" data-action="makan" class="bg-green-700 hover:bg-green-600 text-white text-xs font-bold py-1.5 px-3 rounded-full"><i class="fas fa-utensils"></i> +Makan</button>
                             <button data-player="${player}" data-action="king" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 px-3 rounded-full"><i class="fas fa-crown"></i> +King</button>
+                            <button data-player="${player}" data-action="play" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-1.5 px-3 rounded-full"><i class="fas fa-plus-circle"></i> +5 Play</button>
                         </div>
                         <div class="flex flex-wrap justify-center gap-2 mt-2">
                             <button data-player="${player}" data-action="firstdeath" class="bg-red-800 hover:bg-red-700 text-white text-xs font-bold py-1 px-2 rounded-full"><i class="fas fa-skull"></i> Mati-1</button>
@@ -292,14 +295,12 @@
                 grid.appendChild(card);
             });
             
-            // Pasang event listener untuk tombol aksi cepat
             document.querySelectorAll('[data-action]').forEach(btn => {
                 btn.removeEventListener('click', handleQuickAction);
                 btn.addEventListener('click', handleQuickAction);
             });
         }
         
-        // Handler aksi cepat (makan, king, death)
         function handleQuickAction(e) {
             if (!database) return;
             const btn = e.currentTarget;
@@ -308,11 +309,12 @@
             let delta = 0;
             let actionName = '';
             switch(action) {
-                case 'makan': delta = 20; actionName = 'Makan'; break;
-                case 'king': delta = 30; actionName = 'King of the hill'; break;
+                case 'makan': delta = 30; actionName = 'Makan'; break;
+                case 'king': delta = 40; actionName = 'King of the hill'; break;
                 case 'firstdeath': delta = -30; actionName = 'Mati pertama'; break;
                 case 'seconddeath': delta = -20; actionName = 'Mati kedua'; break;
                 case 'lastdeath': delta = -10; actionName = 'Mati terakhir'; break;
+                case 'play': delta = 5; actionName = '+5 Play'; break;
                 default: return;
             }
             const oldScore = scores[player];
@@ -321,7 +323,6 @@
             addLogToFirebase(`${player} : ${actionName} (${delta>0?`+${delta}`:delta}) → ${oldScore} → ${newScore}`);
         }
         
-        // Render log dari Firebase
         function renderLogs(logsData) {
             const logContainer = document.getElementById('log-list');
             if (!logContainer) return;
@@ -329,12 +330,10 @@
                 logContainer.innerHTML = '<div class="text-slate-500 italic">Belum ada log. Lakukan aksi untuk mencatat.</div>';
                 return;
             }
-            // Ubah object menjadi array dan urutkan berdasarkan timestamp terbaru
             const logsArray = Object.values(logsData).sort((a,b) => b.timestamp - a.timestamp);
             logContainer.innerHTML = logsArray.slice(0,40).map(log => `<div class="border-b border-slate-700/40 pb-1 text-slate-300"><i class="fas fa-caret-right text-emerald-400 mr-1"></i> ${log.message}</div>`).join('');
         }
         
-        // Sinkronisasi skor dari Firebase
         function syncScores() {
             if (!database) return;
             scoresRef.on('value', (snapshot) => {
@@ -344,7 +343,6 @@
                         scores[p] = data[p] !== undefined ? data[p] : 1500;
                     }
                 } else {
-                    // Inisialisasi pertama kali jika database kosong
                     let init = {};
                     PLAYERS.forEach(p => { init[p] = 1500; });
                     scoresRef.set(init);
@@ -358,14 +356,12 @@
         function syncLogs() {
             if (!database) return;
             logsRef.on('value', (snapshot) => {
-                const logs = snapshot.val();
-                renderLogs(logs);
+                renderLogs(snapshot.val());
             });
         }
         
-        // Render dropdown
         function renderDropdowns() {
-            const selects = ['first-death-select', 'second-death-select', 'last-death-select', 'king-select'];
+            const selects = ['first-death-select', 'second-death-select', 'last-death-select', 'king-select', 'champion-select'];
             selects.forEach(id => {
                 const sel = document.getElementById(id);
                 if (!sel) return;
@@ -397,26 +393,35 @@
             });
         }
         
-        // Inisialisasi semua
+        // Inisialisasi
         if (initFirebase()) {
             syncScores();
             syncLogs();
             renderDropdowns();
             renderKillsInputs();
         } else {
-            // Fallback jika Firebase gagal (tampilkan data statis)
             PLAYERS.forEach(p => scores[p] = 1500);
             renderPlayers();
             renderDropdowns();
             renderKillsInputs();
         }
         
-        // Event listener untuk tombol reset global dan apply match
-        document.getElementById('reset-all-btn')?.addEventListener('click', resetAllScores);
+        // Reset dengan konfirmasi
+        const resetBtn = document.getElementById('reset-all-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('⚠️ Yakin akan mereset semua skor ke 1500? Tindakan ini tidak dapat dibatalkan.(Tindakan Curang akan kena pasal KUHP & Dosa)')) {
+                    resetAllScores();
+                }
+            });
+        }
+        
         document.getElementById('apply-match-btn')?.addEventListener('click', processMatch);
         document.getElementById('clear-log-btn')?.addEventListener('click', () => {
             if (database && logsRef) {
-                logsRef.remove().then(() => addLogToFirebase("🧹 Log global dibersihkan oleh pengguna"));
+                if (confirm('Hapus semua log aktivitas?')) {
+                    logsRef.remove().then(() => addLogToFirebase("🧹 Log global dibersihkan oleh pengguna"));
+                }
             }
         });
     </script>
