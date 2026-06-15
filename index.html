@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ELO Arena • Real-time Firebase</title>
+    <title>ELO Arena • Real-time Firebase • Rank Titles Glow + Last Reset Date</title>
     <!-- Tailwind CSS + Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -18,6 +18,76 @@
         .card-rank-3 { background: linear-gradient(135deg, rgba(205,127,50,0.2), rgba(180,83,9,0.1)); border-left: 4px solid #b45309; }
         .card-rank-5 { background: linear-gradient(135deg, rgba(128,0,128,0.2), rgba(75,0,130,0.1)); border-left: 4px solid #a855f7; }
         .offline-badge { background: #991b1b; }
+        
+        /* ========= ANIMASI & BADGE TITLE YANG LEBIH MENARIK ========= */
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 60px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .title-badge:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+            box-shadow: 0 0 12px currentColor;
+        }
+        /* Badge spesifik per rank dengan gradien dan icon */
+        .badge-gm {
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            color: #1e1a0c;
+            text-shadow: 0 0 2px #ffec9f;
+            border-left: 3px solid #ffdf80;
+        }
+        .badge-im {
+            background: linear-gradient(135deg, #a855f7, #7e22ce);
+            color: #f3e8ff;
+            border-left: 3px solid #c084fc;
+        }
+        .badge-fm {
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            color: #e0f2fe;
+            border-left: 3px solid #60a5fa;
+        }
+        .badge-cm {
+            background: linear-gradient(135deg, #22c55e, #166534);
+            color: #dcfce7;
+            border-left: 3px solid #4ade80;
+        }
+        .badge-expert {
+            background: linear-gradient(135deg, #06b6d4, #155e75);
+            color: #cffafe;
+            border-left: 3px solid #22d3ee;
+        }
+        .badge-newbie {
+            background: linear-gradient(135deg, #64748b, #334155);
+            color: #f1f5f9;
+            border-left: 3px solid #94a3b8;
+        }
+        .badge-noob {
+            background: linear-gradient(135deg, #dc2626, #7f1d1d);
+            color: #fee2e2;
+            border-left: 3px solid #f87171;
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(220,38,38,0); }
+            100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+        }
+        /* efek tambahan pada skor */
+        .score-number {
+            transition: all 0.2s;
+            font-weight: 900;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-gray-900 min-h-screen p-4 md:p-6 font-sans text-gray-100">
@@ -48,8 +118,13 @@
                     <li>📌 Mati pertama -30 | Mati kedua -20 | Mati terakhir -10</li>
                     <li>🍗 Makan +30 per kill | 👑 King of the hill +40</li>
                     <li class="text-blue-300"><i class="fas fa-plus-circle"></i> Klik "+5 Play" di kartu pemain | Ronde otomatis +5 untuk peserta event (mati, king, juara)</li>
+                    <li class="text-amber-300"><i class="fas fa-medal"></i> Rank ELO: GM≥2000 | IM≥1900 | FM≥1800 | CM≥1700 | Expert≥1600 | NewBie≥1500 | Noob<1500</li>
                 </ul>
                 <button id="reset-all-btn" class="mt-5 w-full bg-red-700 hover:bg-red-800 text-white font-bold py-2 rounded-xl transition flex items-center justify-center gap-2"><i class="fas fa-undo-alt"></i> Reset global (semua ke 1500)</button>
+                <!-- ===== TANGGAL RESET TERAKHIR DI BAWAH TOMBOL ===== -->
+                <div id="last-reset-date" class="text-xs text-slate-400 mt-3 flex items-center justify-center gap-2 bg-slate-900/40 py-1.5 rounded-lg">
+                    <i class="far fa-calendar-alt text-slate-300"></i> <span id="reset-timestamp-text">Memuat tanggal reset...</span>
+                </div>
             </div>
 
             <div class="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-700 shadow-xl lg:col-span-2">
@@ -80,7 +155,7 @@
                 <div class="text-slate-500 italic">Memuat data dari Firebase...</div>
             </div>
         </div>
-        <footer class="text-center text-slate-500 text-xs mt-8 pb-4">Dashboard ELO • Real-time Firebase • Semua perubahan langsung terlihat oleh pengguna lain</footer>
+        <footer class="text-center text-slate-500 text-xs mt-8 pb-4">Dashboard ELO • Real-time Firebase • Rank title dengan efek glow & ikon eksklusif • Tanggal reset tersimpan otomatis</footer>
     </div>
 
     <script>
@@ -99,8 +174,107 @@
 
         const PLAYERS = ["Tungtung", "Jreng", "Firlie777", "Danker", "Dewakapas"];
         let database;
-        let scoresRef, logsRef;
+        let scoresRef, logsRef, metaResetRef;
         let scores = {};
+
+        // ========== Fungsi menentukan Title ELO dengan icon dan kelas CSS premium ==========
+        function getEloTitle(score) {
+            if (score >= 2000) {
+                return { 
+                    name: "Grandmaster", 
+                    full: "Grandmaster (GM)", 
+                    short: "GM", 
+                    icon: "fas fa-crown fa-fw", 
+                    badgeClass: "badge-gm",
+                    desc: "Legenda sejati!"
+                };
+            }
+            if (score >= 1900) {
+                return { 
+                    name: "International Master", 
+                    full: "International Master (IM)", 
+                    short: "IM", 
+                    icon: "fas fa-star-of-life fa-fw", 
+                    badgeClass: "badge-im",
+                    desc: "Master Internasional"
+                };
+            }
+            if (score >= 1800) {
+                return { 
+                    name: "FIDE Master", 
+                    full: "FIDE Master (FM)", 
+                    short: "FM", 
+                    icon: "fas fa-chess-queen fa-fw", 
+                    badgeClass: "badge-fm",
+                    desc: "Ahli taktik"
+                };
+            }
+            if (score >= 1700) {
+                return { 
+                    name: "Candidate Master", 
+                    full: "Candidate Master (CM)", 
+                    short: "CM", 
+                    icon: "fas fa-shield-alt fa-fw", 
+                    badgeClass: "badge-cm",
+                    desc: "Kandidat kuat"
+                };
+            }
+            if (score >= 1600) {
+                return { 
+                    name: "Expert", 
+                    full: "Expert", 
+                    short: "EXP", 
+                    icon: "fas fa-chart-line fa-fw", 
+                    badgeClass: "badge-expert",
+                    desc: "Pakar medan perang"
+                };
+            }
+            if (score >= 1500) {
+                return { 
+                    name: "NewBie", 
+                    full: "NewBie", 
+                    short: "NB", 
+                    icon: "fas fa-seedling fa-fw", 
+                    badgeClass: "badge-newbie",
+                    desc: "Masih belajar"
+                };
+            }
+            return { 
+                name: "Noob Bgt Anjay", 
+                full: "Noob Bgt Anjay", 
+                short: "NOOB", 
+                icon: "fas fa-face-grimace fa-fw", 
+                badgeClass: "badge-noob",
+                desc: "Butuh latihan keras!"
+            };
+        }
+
+        // Fungsi untuk memformat timestamp menjadi tanggal lokal Indonesia
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return "Belum pernah direset";
+            const date = new Date(timestamp);
+            return date.toLocaleString('id-ID', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+        }
+
+        // Menampilkan tanggal reset terakhir di UI
+        function updateLastResetDisplay(timestamp) {
+            const textSpan = document.getElementById('reset-timestamp-text');
+            if (textSpan) {
+                if (timestamp) {
+                    textSpan.innerHTML = `<i class="far fa-clock mr-1"></i> ${formatTimestamp(timestamp)}`;
+                } else {
+                    textSpan.innerHTML = `<i class="fas fa-history"></i> Belum ada reset (data awal)`;
+                }
+            }
+        }
 
         function initFirebase() {
             try {
@@ -108,6 +282,7 @@
                 database = firebase.database();
                 scoresRef = database.ref('scores');
                 logsRef = database.ref('logs');
+                metaResetRef = database.ref('meta/lastReset');  // Referensi khusus untuk menyimpan timestamp reset global
                 
                 database.ref('.info/connected').on('value', (snap) => {
                     const statusDiv = document.getElementById('connection-status');
@@ -121,6 +296,13 @@
                         statusDiv.classList.add('bg-red-700');
                     }
                 });
+
+                // Listen perubahan tanggal reset terakhir
+                metaResetRef.on('value', (snapshot) => {
+                    const resetTime = snapshot.val();
+                    updateLastResetDisplay(resetTime);
+                });
+
                 return true;
             } catch(e) {
                 console.error(e);
@@ -154,16 +336,26 @@
             });
         }
 
+        // RESET GLOBAL: update skor ke 1500 + simpan timestamp reset terakhir + log dengan tanggal
         function resetAllScores() {
             if (!database) return;
             const updates = {};
             PLAYERS.forEach(p => { updates[p] = 1500; });
             scoresRef.update(updates).then(() => {
-                addLogToFirebase("🌍 RESET GLOBAL: Semua skor dikembalikan ke 1500 oleh seorang pengguna");
-            });
+                // Simpan timestamp reset (server time) ke node meta/lastReset
+                const currentServerTimestamp = firebase.database.ServerValue.TIMESTAMP;
+                metaResetRef.set(currentServerTimestamp);
+                
+                // Buat log dengan tanggal lokal (waktu client untuk preview, tapi server timestamp sudah disimpan)
+                const now = new Date();
+                const formattedDate = now.toLocaleString('id-ID', { 
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
+                    hour: '2-digit', minute: '2-digit', second: '2-digit' 
+                });
+                addLogToFirebase(`🌍 RESET GLOBAL: Semua skor dikembalikan ke 1500 pada ${formattedDate} 🕒`);
+            }).catch(err => console.warn(err));
         }
 
-        // Process match: mati, king, makan, dan champion mendapat bonus +5 (tanpa +50)
         function processMatch() {
             if (!database) return;
             let firstDeath = document.getElementById('first-death-select').value;
@@ -187,7 +379,6 @@
             const currentScores = { ...scores };
             let changes = [];
             
-            // Event yang mempengaruhi skor
             if (firstDeath) changes.push({player: firstDeath, delta: -30, reason: "Mati pertama"});
             if (secondDeath) changes.push({player: secondDeath, delta: -20, reason: "Mati kedua"});
             if (lastDeath) changes.push({player: lastDeath, delta: -10, reason: "Mati terakhir"});
@@ -196,13 +387,12 @@
                 if (kills[p] > 0) changes.push({player: p, delta: kills[p] * 30, reason: `${kills[p]} Makan`});
             }
             
-            // Bonus +5 untuk setiap pemain yang terlibat dalam event (mati, king, dan juara)
             const involvedPlayers = new Set();
             if (firstDeath) involvedPlayers.add(firstDeath);
             if (secondDeath) involvedPlayers.add(secondDeath);
             if (lastDeath) involvedPlayers.add(lastDeath);
             if (king) involvedPlayers.add(king);
-            if (champion) involvedPlayers.add(champion); // Juara juga mendapat +5
+            if (champion) involvedPlayers.add(champion);
             
             for (let p of involvedPlayers) {
                 changes.push({player: p, delta: 5, reason: "Bonus +5 Play (event)"});
@@ -213,13 +403,11 @@
                 return;
             }
             
-            // Hitung skor baru
             const newScores = { ...currentScores };
             for (let ch of changes) {
                 newScores[ch.player] = (newScores[ch.player] || 1500) + ch.delta;
             }
             
-            // Update ke Firebase
             const updates = {};
             for (let p of PLAYERS) {
                 updates[p] = newScores[p];
@@ -229,7 +417,6 @@
                 addLogToFirebase(summary);
             }).catch(err => alert("Gagal update: "+err));
             
-            // Reset form
             document.getElementById('first-death-select').value = "";
             document.getElementById('second-death-select').value = "";
             document.getElementById('last-death-select').value = "";
@@ -241,7 +428,7 @@
             });
         }
 
-        // RenderPlayers dengan tombol +5 Play di setiap kartu
+        // RENDER PLAYERS DENGAN BADGE TITLE SUPER MENARIK
         function renderPlayers() {
             const grid = document.getElementById('players-grid');
             if (!grid) return;
@@ -272,13 +459,28 @@
                     rankBadge = `<span class="bg-slate-700 text-slate-300 text-xs font-bold px-2 py-0.5 rounded-full">#${rank}</span>`;
                 }
                 
+                const titleData = getEloTitle(score);
+                const titleHTML = `
+                    <div class="title-badge ${titleData.badgeClass} group relative cursor-help" title="${titleData.full} • ${titleData.desc}">
+                        <i class="${titleData.icon} text-sm"></i>
+                        <span class="font-bold tracking-wide">${titleData.short}</span>
+                        <span class="hidden md:inline text-[11px] opacity-90">${titleData.name}</span>
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-0.5 bg-black/80 text-[10px] text-white rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-20">
+                            ${titleData.full}
+                        </div>
+                    </div>
+                `;
+                
                 const card = document.createElement('div');
-                card.className = `score-card bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4 border ${rank===1?'border-yellow-500/60':'border-slate-700'} shadow-lg transition-all ${rankClass}`;
+                card.className = `score-card bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4 border ${rank===1?'border-yellow-500/60':'border-slate-700'} shadow-xl transition-all duration-200 hover:scale-[1.02] ${rankClass}`;
                 card.innerHTML = `
                     <div class="flex flex-col items-center text-center relative">
                         <div class="absolute top-0 right-0">${rankBadge}</div>
                         <div class="text-2xl font-bold truncate max-w-full px-3 mt-2">${player}</div>
-                        <div class="text-5xl font-black my-2 ${score >= 1500 ? 'text-emerald-300' : 'text-rose-300'}">${Math.round(score)}</div>
+                        <div class="text-5xl font-black my-2 score-number ${score >= 1500 ? 'text-emerald-300' : 'text-rose-300'}">${Math.round(score)}</div>
+                        <div class="mb-3 mt-1">
+                            ${titleHTML}
+                        </div>
                         <div class="flex flex-wrap justify-center gap-2 mt-1">
                             <button data-player="${player}" data-action="makan" class="bg-green-700 hover:bg-green-600 text-white text-xs font-bold py-1.5 px-3 rounded-full"><i class="fas fa-utensils"></i> +Makan</button>
                             <button data-player="${player}" data-action="king" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 px-3 rounded-full"><i class="fas fa-crown"></i> +King</button>
@@ -326,7 +528,7 @@
         function renderLogs(logsData) {
             const logContainer = document.getElementById('log-list');
             if (!logContainer) return;
-            if (!logsData || logsData.length === 0) {
+            if (!logsData || Object.keys(logsData).length === 0) {
                 logContainer.innerHTML = '<div class="text-slate-500 italic">Belum ada log. Lakukan aksi untuk mencatat.</div>';
                 return;
             }
@@ -406,11 +608,10 @@
             renderKillsInputs();
         }
         
-        // Reset dengan konfirmasi
         const resetBtn = document.getElementById('reset-all-btn');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
-                if (confirm('⚠️ Yakin akan mereset semua skor ke 1500? Tindakan ini tidak dapat dibatalkan.(Tindakan Curang akan kena pasal KUHP & Dosa)')) {
+                if (confirm('⚠️ Yakin akan mereset semua skor ke 1500? Tindakan ini tidak dapat dibatalkan. (Tindakan Curang akan kena pasal KUHP & Dosa)')) {
                     resetAllScores();
                 }
             });
